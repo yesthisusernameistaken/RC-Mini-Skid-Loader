@@ -1,10 +1,10 @@
 
 #include <PPMReader.h>
 /* 
-Working version of reading ppm and moving motors
 Written by Vincent Y
 Alternative code for https://github.com/flytron/TinyDrive
 
+Flashing the Tinydrive:
 Select Tools>Board>Arduino Pro or Pro mini
 Processor>ATmega328P (5v, 16Mhz)
 -Arduino Firmware Upload Process:
@@ -19,11 +19,14 @@ To do:
 https://github.com/flytron/TinyDrive/blob/main/TinyDrive_v1/TinyDrive_v1.ino
 -Add servo support
 -Add LED support
--Add batterty sensor
--Test out with expected channel set to 8
+-Add batterty code sensor and test
+- Fix issue with directions not being correct when reversing then turning
+
 Done:
 -Add reverse 10.02.2022
 -Rename motor pins 10.02.2022
+-Test out with expected channel set to 8 11.02.2022
+This is based on the receiver used and supported PPM
 
 */
 
@@ -67,7 +70,7 @@ int upperLimit = 1550;
 // Initialize a PPMReader on digital pin 2 with 6 expected channels.
 // Receiver used JMT RX2A PPM FS-RX2A Pro Receiver Mini RX for Flysky
 int interruptPin = 2;
-int channelAmount = 6;
+int channelAmount = 8;
 PPMReader ppm(interruptPin, channelAmount);
 
 
