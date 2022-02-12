@@ -1,8 +1,10 @@
 
 #include <PPMReader.h>
+#include <Servo.h>
 /* 
 Written by Vincent Y
 Alternative code for https://github.com/flytron/TinyDrive
+Using RX2A PPM FS-RX2A Pro Receiver Mini RX for Flysky receiver
 
 Flashing the Tinydrive:
 Select Tools>Board>Arduino Pro or Pro mini
@@ -20,7 +22,9 @@ https://github.com/flytron/TinyDrive/blob/main/TinyDrive_v1/TinyDrive_v1.ino
 -Add servo support
 -Add LED support
 -Add batterty code sensor and test
-- Fix issue with directions not being correct when reversing then turning
+-Fix issue with directions not being correct when reversing then turning
+-Detect if valid PPM signal or not, stop it from misbehaving when the TX is not on
+
 
 Done:
 -Add reverse 10.02.2022
@@ -41,8 +45,9 @@ This is based on the receiver used and supported PPM
 #define LED_OFF digitalWrite(STATUS_LED,LOW);
 
 //Servos
+//Servo SERVO_1;
 #define SERVO_1 A4          // CH4 Servo PWM signal output.
-#define SERVO_2 A5          // CH5 Servo PWM signal output.
+//#define SERVO_2 A5          // CH5 Servo PWM signal output.
 #define HEADLIGHT_PIN 3     // D3(PWM) pin connected to the Base pin of an NPN transistor. [LED+] has a serial 10 Ohm resistor to limit the current. Use AnalogWrite(0-255) to control the light intensity.
 
 //Battery sensor
@@ -96,7 +101,9 @@ void setup(){
   
   //The two servos
   pinMode(SERVO_1, OUTPUT); digitalWrite(SERVO_1,LOW);
-  pinMode(SERVO_2, OUTPUT); digitalWrite(SERVO_2,LOW);
+  //pinMode(SERVO_2, OUTPUT); digitalWrite(SERVO_2,LOW);
+  //SERVO_1.attach(A4);
+  //SERVO_2.attach;
   
   Serial.begin(115200);
   delay(200);
@@ -104,14 +111,15 @@ void setup(){
   pinMode(STATUS_LED, OUTPUT);  // initialize the LED pin as an output.
   LED_ON; 
 }
+
 void loop(){
  
-  unsigned long PPM_Channel_1 = ppm.latestValidChannelValue(1, 0);
-  unsigned long PPM_Channel_2 = ppm.latestValidChannelValue(2, 0);
-  unsigned long PPM_Channel_3 = ppm.latestValidChannelValue(3, 0);
-  unsigned long PPM_Channel_4 = ppm.latestValidChannelValue(4, 0); 
-  unsigned long PPM_Channel_5 = ppm.latestValidChannelValue(5, 0);
-  unsigned long PPM_Channel_6 = ppm.latestValidChannelValue(6, 0);
+  unsigned long PPM_Channel_1 = ppm.latestValidChannelValue(1, 1500);//A
+  unsigned long PPM_Channel_2 = ppm.latestValidChannelValue(2, 1500);//E
+  unsigned long PPM_Channel_3 = ppm.latestValidChannelValue(3, 1500);//T
+  unsigned long PPM_Channel_4 = ppm.latestValidChannelValue(4, 1500);//R
+  unsigned long PPM_Channel_5 = ppm.latestValidChannelValue(5, 1500);
+  unsigned long PPM_Channel_6 = ppm.latestValidChannelValue(6, 1500);
 
 // Forward. reverse
   if (PPM_Channel_3 > upperLimit) {
@@ -168,13 +176,15 @@ void loop(){
     analogWrite(M1_DIRECTION, Speed_A);
     analogWrite(M2_DIRECTION, Speed_B);
 
+    //SERVO_1.write(PPM_Channel_5);
     digitalWrite(SERVO_1,HIGH);
-    delayMicroseconds((PPM_Channel_5/2) + 1000);
+    delayMicroseconds((PPM_Channel_5/6) + 1000);
+    //delayMicroseconds(1000);
     digitalWrite(SERVO_1,LOW);
 
-    digitalWrite(SERVO_2,HIGH);
-    delayMicroseconds((PPM_Channel_6/2) + 1000);
-    digitalWrite(SERVO_2,LOW);
+    //digitalWrite(SERVO_2,HIGH);
+    //delayMicroseconds((PPM_Channel_6/2) + 1000);
+    //digitalWrite(SERVO_2,LOW);
 
 
   //Serial.print(String(Speed_A) + " " + String(Speed_B));
