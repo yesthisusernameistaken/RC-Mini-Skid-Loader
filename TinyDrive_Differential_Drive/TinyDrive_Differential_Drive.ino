@@ -46,7 +46,7 @@ This is based on the receiver used and supported PPM
 
 //Servos
 //Servo SERVO_1;
-#define SERVO_1 A4          // CH4 Servo PWM signal output.
+//#define SERVO_1 A4          // CH4 Servo PWM signal output.
 //#define SERVO_2 A5          // CH5 Servo PWM signal output.
 #define HEADLIGHT_PIN 3     // D3(PWM) pin connected to the Base pin of an NPN transistor. [LED+] has a serial 10 Ohm resistor to limit the current. Use AnalogWrite(0-255) to control the light intensity.
 
@@ -72,10 +72,12 @@ int Speed_B = 0;
 int lowerLimit = 1450;
 int upperLimit = 1550; 
 
+Servo myservo;
+
 // Initialize a PPMReader on digital pin 2 with 6 expected channels.
 // Receiver used JMT RX2A PPM FS-RX2A Pro Receiver Mini RX for Flysky
 int interruptPin = 2;
-int channelAmount = 8;
+int channelAmount = 6;
 PPMReader ppm(interruptPin, channelAmount);
 
 
@@ -100,12 +102,13 @@ void setup(){
   pinMode(HEADLIGHT_PIN, OUTPUT); digitalWrite(HEADLIGHT_PIN,LOW);
   
   //The two servos
-  pinMode(SERVO_1, OUTPUT); digitalWrite(SERVO_1,LOW);
+  //pinMode(SERVO_1, OUTPUT); digitalWrite(SERVO_1,LOW);
   //pinMode(SERVO_2, OUTPUT); digitalWrite(SERVO_2,LOW);
   //SERVO_1.attach(A4);
-  //SERVO_2.attach;
+  //SERVO_2.attach(A5);
+  //myservo.attach(A4);
   
-  Serial.begin(115200);
+  //Serial.begin(115200);
   delay(200);
   //march();   // Play The Imperial March 
   pinMode(STATUS_LED, OUTPUT);  // initialize the LED pin as an output.
@@ -125,21 +128,19 @@ void loop(){
   if (PPM_Channel_3 > upperLimit) {
     //Stick is pushed upwards, go forward
     Speed_A = map(PPM_Channel_3, upperLimit, 2000, 0, 255);
-    Speed_B = map(PPM_Channel_3, upperLimit, 2000, 0, 255);
-    digitalWrite(M1_PHASE, LOW);
-    digitalWrite(M2_PHASE, LOW);
+    Speed_B = Speed_A; 
+    digitalWrite(M1_PHASE, LOW); digitalWrite(M2_PHASE, LOW);
   }
   else if (PPM_Channel_3 < lowerLimit){
     //Stick being pulled down, go backwards
     Speed_A = map(PPM_Channel_3, lowerLimit, 1000, 0, 255);
-    Speed_B = map(PPM_Channel_3, lowerLimit, 1000, 0, 255);
-    digitalWrite(M1_PHASE, HIGH);
-    digitalWrite(M2_PHASE, HIGH);
+    Speed_B = Speed_A; 
+    digitalWrite(M1_PHASE, HIGH); digitalWrite(M2_PHASE, HIGH);
   }
   else{
     //Stick in middle position. stop all motors
     Speed_A = 0;
-    Speed_B = 0;
+    Speed_B = Speed_A;
   }
 
   // Steeting 
@@ -151,11 +152,9 @@ void loop(){
     Speed_B = Speed_B + RMapped;
     // Confine the range from 0 to 255
     if (Speed_A < 0) {
-      Speed_A = 0;
-    }
+      Speed_A = 0;    }
     if (Speed_B > 255) {
-      Speed_B = 255;
-    }
+      Speed_B = 255;    }
   }
   if (PPM_Channel_1 > upperLimit) {
     // Convert the increasing X-axis readings from 550 to 1023 into 0 to 255 value
@@ -165,27 +164,16 @@ void loop(){
     Speed_B = Speed_B - xMapped;
     // Confine the range from 0 to 255
     if (Speed_A > 255) {
-      Speed_A = 255;
-    }
+      Speed_A = 255;    }
     if (Speed_B < 0) {
-      Speed_B = 0;
-    }
+      Speed_B = 0;    }
   }
 
     //Write speed to motors
     analogWrite(M1_DIRECTION, Speed_A);
     analogWrite(M2_DIRECTION, Speed_B);
 
-    //SERVO_1.write(PPM_Channel_5);
-    digitalWrite(SERVO_1,HIGH);
-    delayMicroseconds((PPM_Channel_5/6) + 1000);
-    //delayMicroseconds(1000);
-    digitalWrite(SERVO_1,LOW);
-
-    //digitalWrite(SERVO_2,HIGH);
-    //delayMicroseconds((PPM_Channel_6/2) + 1000);
-    //digitalWrite(SERVO_2,LOW);
-
+    //myservo.write(PPM_Channel_2);
 
   //Serial.print(String(Speed_A) + " " + String(Speed_B));
   //Serial.println();
@@ -193,13 +181,16 @@ void loop(){
   //analogWrite(PWM_B, Speed_B);  
   //delay(100); //Wait a bit for motor to speed up
 
+
+  //Battery check routine
+
   if ((Speed_A< 10) && (Speed_B < 10)){ //central dead zone
           motors_off = 1;
           //m_throttle = 0;
          // m_direction = 0;        
         }else{
         motors_off = 0;}
-        
+       
   // Check for the battery voltage 
    if ((millis() - last_check_time) >= CHECK_PERIOD){
         last_check_time = millis ();
@@ -218,6 +209,5 @@ void loop(){
                }
             }   
        }
-  
  
 }
