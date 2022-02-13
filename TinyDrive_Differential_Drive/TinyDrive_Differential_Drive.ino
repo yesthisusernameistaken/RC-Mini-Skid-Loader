@@ -1,6 +1,6 @@
 
 #include <PPMReader.h>
-#include <Servo.h>
+
 /* 
 Written by Vincent Y
 Alternative code for https://github.com/flytron/TinyDrive
@@ -20,6 +20,7 @@ To do:
 -Change pins to work with the code below
 https://github.com/flytron/TinyDrive/blob/main/TinyDrive_v1/TinyDrive_v1.ino
 -Add servo support
+Can't user servo library as it uses timers and dissables pin 8 and 9
 -Add LED support
 -Add batterty code sensor and test
 -Fix issue with directions not being correct when reversing then turning
@@ -130,14 +131,12 @@ void loop(){
     Speed_A = map(PPM_Channel_3, upperLimit, 2000, 0, 255);
     Speed_B = Speed_A; 
     digitalWrite(M1_PHASE, LOW); digitalWrite(M2_PHASE, LOW);
-  }
-  else if (PPM_Channel_3 < lowerLimit){
+  }else if (PPM_Channel_3 < lowerLimit){
     //Stick being pulled down, go backwards
     Speed_A = map(PPM_Channel_3, lowerLimit, 1000, 0, 255);
     Speed_B = Speed_A; 
     digitalWrite(M1_PHASE, HIGH); digitalWrite(M2_PHASE, HIGH);
-  }
-  else{
+  }else{
     //Stick in middle position. stop all motors
     Speed_A = 0;
     Speed_B = Speed_A;
