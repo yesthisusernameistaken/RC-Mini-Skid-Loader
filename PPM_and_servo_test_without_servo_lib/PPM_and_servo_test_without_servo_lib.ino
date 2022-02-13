@@ -1,10 +1,9 @@
 /* 
 
-Takes PPM input and controls a servo
+Takes PPM input and controls a servo WITHOUT using the sero library
 
 */
 #include <PPMReader.h>
-#include <Servo.h>
 
 
 //--------------------------------------------------
@@ -19,7 +18,7 @@ int Speed_B = 0;
 int lowerLimit = 1450;
 int upperLimit = 1550; 
 
-//Battery sensor
+/*/Battery sensor
 #define Battery_Sensor_Pin  A6        // Connected to the Battery input over 1/11 voltage divider. 
 #define Battery_Sensor_Factor  11.6   // Multiply the reading with this value and you will find the battery voltage in mV  
 #define Cell_Min_Voltage 3200         // Minimum 3.2V per cell when the motors off.
@@ -28,22 +27,23 @@ uint8_t Battery_Cell_Count = 1;       // Detected battery cell count (1 or 2)
 #define CHECK_PERIOD 1000L            // Check the battery level in every 1000ms
 unsigned long last_check_time = 0L ;  
 volatile boolean motors_off = 1;
+*/
 //--------------------------------------------------
 
-
-
-Servo myservo;  // create servo object to control a servo
+#define SERVO_1 A4          // CH4 Servo PWM signal output.
 
 // Initialize a PPMReader on digital pin 2 with 6 expected channels. Receiver used JMT RX2A PPM FS-RX2A Pro Receiver Mini RX for Flysky
 int interruptPin = 2; int channelAmount = 6;
 PPMReader ppm(interruptPin, channelAmount);
 
-int pos = 0;    // variable to store the servo position
 
 void setup() {
-  myservo.attach(A4);  // attaches the servo on pin 9 to the servo object
+ 
+  //The two servos
+  pinMode(SERVO_1, OUTPUT); digitalWrite(SERVO_1,LOW);
+  //pinMode(SERVO_2, OUTPUT); digitalWrite(SERVO_2,LOW);
   
-//--------------------------------------------------
+/*/--------------------------------------------------
  //Motor stuff 
   pinMode (M2_DIRECTION, OUTPUT); pinMode (M2_PHASE, OUTPUT); pinMode (M1_PHASE, OUTPUT); pinMode (M1_DIRECTION, OUTPUT);
 
@@ -58,6 +58,7 @@ void setup() {
       }else{ 
         Battery_Cell_Count = 1;}  // Run on 1S LiPo mode for 1S LiPo or 3-4x AA Batteries(<=6V) 
   last_check_time = millis (); // set the first battery check time.
+*/
 //--------------------------------------------------
 }
 
@@ -70,21 +71,16 @@ void loop() {
   unsigned long PPM_Channel_5 = ppm.latestValidChannelValue(5, 1500);
   unsigned long PPM_Channel_6 = ppm.latestValidChannelValue(6, 1500);
 
-  myservo.write(PPM_Channel_2);
 
+  digitalWrite(SERVO_1, HIGH);
+  delayMicroseconds(PPM_Channel_2);
+  digitalWrite(SERVO_1, LOW);
+
+  /*
   int RMapped = map(PPM_Channel_1, 1000, 2000, 0, 255);
   Speed_A = RMapped;
-  digitalWrite(M1_PHASE, HIGH);
-  analogWrite(M1_DIRECTION, Speed_A);
-  
-  /*for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-    // in steps of 1 degree
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15 ms for the servo to reach the position
-  }
-  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15 ms for the servo to reach the position
-  }*/
-  
+  digitalWrite(M1_PHASE, HIGH); digitalWrite(M2_PHASE, HIGH);
+  analogWrite(M1_DIRECTION, Speed_A); analogWrite(M2_DIRECTION, Speed_A);
+  */
+   
 }

@@ -10,19 +10,19 @@ Flashing the Tinydrive:
 Select Tools>Board>Arduino Pro or Pro mini
 Processor>ATmega328P (5v, 16Mhz)
 -Arduino Firmware Upload Process:
+Turn off the TX
 Unplug the battery
 Press the Upload button of Arduino IDE and wait for compiling
 Plug the battery immediately(in 2 seconds) when you see "Uploading..." message on the display
 FTDI LEDs will start blinking and you will see "Done Uploading" message in a few seconds.
-
 
 To do: 
 -Change pins to work with the code below
 https://github.com/flytron/TinyDrive/blob/main/TinyDrive_v1/TinyDrive_v1.ino
 -Add servo support
 Can't user servo library as it uses timers and dissables pin 8 and 9
+Also causing issues with timer
 -Add LED support
--Add batterty code sensor and test
 -Fix issue with directions not being correct when reversing then turning
 -Detect if valid PPM signal or not, stop it from misbehaving when the TX is not on
 
@@ -32,6 +32,7 @@ Done:
 -Rename motor pins 10.02.2022
 -Test out with expected channel set to 8 11.02.2022
 This is based on the receiver used and supported PPM
+-Add batterty code sensor and test 12.02.2022
 
 */
 
@@ -46,8 +47,7 @@ This is based on the receiver used and supported PPM
 #define LED_OFF digitalWrite(STATUS_LED,LOW);
 
 //Servos
-//Servo SERVO_1;
-//#define SERVO_1 A4          // CH4 Servo PWM signal output.
+#define SERVO_1 A4          // CH4 Servo PWM signal output.
 //#define SERVO_2 A5          // CH5 Servo PWM signal output.
 #define HEADLIGHT_PIN 3     // D3(PWM) pin connected to the Base pin of an NPN transistor. [LED+] has a serial 10 Ohm resistor to limit the current. Use AnalogWrite(0-255) to control the light intensity.
 
@@ -70,10 +70,8 @@ int Speed_A = 0;          // Speed of motor
 int Speed_B = 0;
 
 // For PPM values, the difference between is the deadband
-int lowerLimit = 1450;
-int upperLimit = 1550; 
-
-Servo myservo;
+int lowerLimit = 1420;
+int upperLimit = 1520; 
 
 // Initialize a PPMReader on digital pin 2 with 6 expected channels.
 // Receiver used JMT RX2A PPM FS-RX2A Pro Receiver Mini RX for Flysky
@@ -103,11 +101,8 @@ void setup(){
   pinMode(HEADLIGHT_PIN, OUTPUT); digitalWrite(HEADLIGHT_PIN,LOW);
   
   //The two servos
-  //pinMode(SERVO_1, OUTPUT); digitalWrite(SERVO_1,LOW);
+  pinMode(SERVO_1, OUTPUT); digitalWrite(SERVO_1,LOW);
   //pinMode(SERVO_2, OUTPUT); digitalWrite(SERVO_2,LOW);
-  //SERVO_1.attach(A4);
-  //SERVO_2.attach(A5);
-  //myservo.attach(A4);
   
   //Serial.begin(115200);
   delay(200);
@@ -172,17 +167,27 @@ void loop(){
     analogWrite(M1_DIRECTION, Speed_A);
     analogWrite(M2_DIRECTION, Speed_B);
 
-    //myservo.write(PPM_Channel_2);
+
+  digitalWrite(SERVO_1, HIGH);
+  delayMicroseconds((PPM_Channel_2/2) + 1000);
+  digitalWrite(SERVO_1, LOW);
+  
+
+
+
+
 
   //Serial.print(String(Speed_A) + " " + String(Speed_B));
   //Serial.println();
-  //analogWrite(PWM_A, Speed_A);           //Both are told to go at the same speed
-  //analogWrite(PWM_B, Speed_B);  
   //delay(100); //Wait a bit for motor to speed up
 
 
-  //Battery check routine
 
+
+
+
+
+  //Battery check routine
   if ((Speed_A< 10) && (Speed_B < 10)){ //central dead zone
           motors_off = 1;
           //m_throttle = 0;
